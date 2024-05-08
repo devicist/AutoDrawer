@@ -9,10 +9,10 @@ to the retracted end stop. Then it will wait for a user command over Serial.
 
 ### USAGE
 
-Wait until calibration is complete then:
-Send 1 to fully extend the plate. Send 0 to fully retract the plate.
-Send values as ASCII characters.
-CR and NL are ignored.
+Wait until calibration is complete then:  
+Send 1 to fully extend the plate. Send 0 to fully retract the plate.  
+Send values as ASCII characters.  
+CR and NL are ignored.  
 Errant values are ignored.
 
 Tested on an Arduino Uno.
