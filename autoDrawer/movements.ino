@@ -14,17 +14,11 @@ void calibrate() {
   Serial.println(F("Calibrate, retract..."));
 #endif
 
-  retractToEndStops();
-
-#ifdef DEBUG_CALIBRATE
-  Serial.println(F("Retracted, Back Off..."));
-#endif
-
-  backOffRetractedEndStops();
+  retractToHome();
   stepper1.setCurrentPosition(0);
 
 #ifdef DEBUG_CALIBRATE
-  Serial.println(F("Set Position: 0"));
+  Serial.println(F("Retracted, Set Position: 0"));
 #endif
 
 #ifdef DEBUG_CALIBRATE
@@ -35,7 +29,31 @@ void calibrate() {
 }
 
 
-// move to and report position at full extension 
+// retract until endStop is hit
+void retractToHome() {
+  stepper1.setSpeed(-calibrationVel);
+
+  while (!isEndStopHit(homeES)) {
+    while (isEmergencyEndStopHit())
+      ;
+    stepper1.runSpeed();
+  }
+}
+
+
+// back off endStop after it is hit.
+void backOffHome() {
+  stepper1.setSpeed(calibrationVel);
+
+  while (isEndStopHit(homeES)) {
+    while (isEmergencyEndStopHit())
+      ;
+    stepper1.runSpeed();
+  }
+}
+
+
+// move to and report position at full extension
 void moveToAndReportFullExtension() {
   extendToEndStops();
 
@@ -52,32 +70,12 @@ void moveToAndReportFullExtension() {
 }
 
 
-// retract until endStop is hit
-void retractToEndStops() {
-  stepper1.setSpeed(-calibrationVel);
-
-  while (!isEndStopHit(retractedES1)) {
-    if (!isEndStopHit(retractedES1)) stepper1.runSpeed();
-  }
-}
-
-
-// back off endStop after it is hit.
-void backOffRetractedEndStops() {
-  stepper1.setSpeed(calibrationVel);
-
-  while (isEndStopHit(retractedES1)) {
-    if (isEndStopHit(retractedES1)) stepper1.runSpeed();
-  }
-}
-
-
 // extend until endStop is hit
 void extendToEndStops() {
   stepper1.setSpeed(calibrationVel);
 
-  while (!isEndStopHit(extendedES1)) {
-    if (!isEndStopHit(extendedES1)) stepper1.runSpeed();
+  while (!isEndStopHit(extendedES)) {
+    if (!isEndStopHit(extendedES)) stepper1.runSpeed();
   }
 }
 
@@ -86,7 +84,7 @@ void extendToEndStops() {
 void backOffExtendedEndStops() {
   stepper1.setSpeed(-calibrationVel);
 
-  while (isEndStopHit(extendedES1)) {
-    if (isEndStopHit(extendedES1)) stepper1.runSpeed();
+  while (isEndStopHit(extendedES)) {
+    if (isEndStopHit(extendedES)) stepper1.runSpeed();
   }
 }

@@ -33,7 +33,7 @@
 // #define DEBUG_ENDSTOP
 
 // define as needed
-const long maxDistanceInSteps = 33000;
+const long maxDistanceInSteps = 25000;  // End to end is 34000 steps
 const float maxVel = 4000;
 const float defaultVel = 3900;
 const float calibrationVel = 1500;
@@ -47,8 +47,9 @@ const int directionVoltagePin1 = 7;  // Direction Voltage
 const int stepPin1 = 10;             // Step
 const int stepVoltagePin1 = 9;       // Step Voltage
 
-const int retractedEndStopPin1 = 12;
-const int extendedEndStopPin1 = 11;
+const int homePin = 3;
+const int extendedEndStopPin = 11;
+const int retractedEndStopPin = 12;
 
 AccelStepper stepper1 = AccelStepper(stepper1.DRIVER, stepPin1, directionPin1);
 
@@ -103,7 +104,7 @@ void loop() {
   }
 
   // step the steppers if permitted
-  if (isEitherEndStopHit() == false) {
+  if (isEmergencyEndStopHit() == false) {
     run(speed, accel);
   }
 }

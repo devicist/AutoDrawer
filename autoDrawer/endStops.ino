@@ -1,19 +1,23 @@
 // use a moving average to mitigate false switch readings
 const int numToAverage = 15;
 
+movingAvg homeVal1(numToAverage);
 movingAvg retractedVal1(numToAverage);
 movingAvg extendedVal1(numToAverage);
 
 enum endStopNames {
-  retractedES1,
-  extendedES1,
+  homeES,
+  retractedES,
+  extendedES,
   numEndStops
 };
 
 void initEndStops() {
-  pinMode(extendedEndStopPin1, INPUT_PULLUP);
-  pinMode(retractedEndStopPin1, INPUT_PULLUP);
+  pinMode(homePin, INPUT_PULLUP);  
+  pinMode(extendedEndStopPin, INPUT_PULLUP);
+  pinMode(retractedEndStopPin, INPUT_PULLUP);
 
+  homeVal1.begin();
   retractedVal1.begin();
   extendedVal1.begin();
 
@@ -23,8 +27,9 @@ void initEndStops() {
 // initialize the endstop values
 void updateEndStopReading() {
   for (int i = 0; i < numToAverage; i++) {
-    retractedVal1.reading(!digitalRead(retractedEndStopPin1));
-    extendedVal1.reading(!digitalRead(extendedEndStopPin1));
+    homeVal1.reading(!digitalRead(homePin));
+    retractedVal1.reading(!digitalRead(retractedEndStopPin));
+    extendedVal1.reading(!digitalRead(extendedEndStopPin));
   }
   return;
 };
@@ -32,27 +37,28 @@ void updateEndStopReading() {
 // update and get endStop value
 int isEndStopHit(int endStop) {
   switch (endStop) {
-    case retractedES1: return retractedVal1.reading(!digitalRead(retractedEndStopPin1));
-    case extendedES1: return extendedVal1.reading(!digitalRead(extendedEndStopPin1));
+    case homeES: return homeVal1.reading(!digitalRead(homePin));
+    case retractedES: return retractedVal1.reading(!digitalRead(retractedEndStopPin));
+    case extendedES: return extendedVal1.reading(!digitalRead(extendedEndStopPin));
   }
 }
 
 
 // check all endStops at once
-bool isEitherEndStopHit() {
+bool isEmergencyEndStopHit() {
   bool isHit = false;
 
-  if (isEndStopHit(retractedES1)) {
+  if (isEndStopHit(retractedES)) {
     isHit = true;
 #ifdef DEBUG_ENDSTOP
-    Serial.println(F("Retracted End Stop 1 Hit"));
+    Serial.println(F("Retracted End Stop Hit"));
 #endif
   }
 
-  if (isEndStopHit(extendedES1)) {
+  if (isEndStopHit(extendedES)) {
     isHit = true;
 #ifdef DEBUG_ENDSTOP
-    Serial.println(F("Extended End Stop 1 Hit"));
+    Serial.println(F("Extended End Stop Hit"));
 #endif
   }
 
