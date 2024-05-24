@@ -33,9 +33,9 @@
 // #define DEBUG_ENDSTOP
 
 // define as needed
-const long maxDistanceInSteps = 25000;  // End to end is 34000 steps
+const long maxDistanceInSteps = 23000;  // End to end is 34000 steps
 const float maxVel = 4000;
-const float defaultVel = 3900;
+const float defaultVel = 2000;
 const float calibrationVel = 1500;
 const float defaultAccel = 500;
 
