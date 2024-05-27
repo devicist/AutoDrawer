@@ -47,11 +47,20 @@ const int directionVoltagePin1 = 7;  // Direction Voltage
 const int stepPin1 = 10;             // Step
 const int stepVoltagePin1 = 9;       // Step Voltage
 
+const int overridePin = 4;
 const int homePin = 3;
 const int extendedEndStopPin = 11;
 const int retractedEndStopPin = 12;
 
-AccelStepper stepper1 = AccelStepper(stepper1.DRIVER, stepPin1, directionPin1);
+enum triggerNames {
+  overrideButton,
+  homeES,
+  retractedES,
+  extendedES,
+  numTriggers
+};
+
+AccelStepper stepper = AccelStepper(stepper.DRIVER, stepPin1, directionPin1);
 
 
 void setup() {
@@ -67,7 +76,7 @@ void setup() {
 
   // set the pins
   initStepperPins();
-  initEndStops();
+  initTriggers();
 
   delay(3000);  // allow driver to power up
 
@@ -94,13 +103,32 @@ void setup() {
 void loop() {
   long speed = defaultVel;
   int accel = defaultAccel;
+  static int drawerControlVal;
+  static int lastControlVal;
 
-  int drawerControlVal = checkForCommand();
+  drawerControlVal = checkForCommand(drawerControlVal);
+  drawerControlVal = checkForManualOverride(drawerControlVal);
 
-  if (drawerControlVal == 0) {
-    moveTo(0);
-  } else if (drawerControlVal == 1) {
-    moveTo(100);
+  if (drawerControlVal != lastControlVal) {
+    if (stepper.isRunning() == true) {
+      quickStop();
+#ifdef DEBUG
+      Serial.println("stopping");
+#endif
+    } else {
+      if (drawerControlVal == 0) {
+        moveTo(0);
+#ifdef DEBUG
+        Serial.println("closing");
+#endif
+      } else if (drawerControlVal == 1) {
+        moveTo(100);
+#ifdef DEBUG
+        Serial.println("opening");
+#endif
+      }
+      lastControlVal = drawerControlVal;
+    }
   }
 
   // step the steppers if permitted
@@ -110,8 +138,8 @@ void loop() {
 }
 
 
-int checkForCommand() {
-  static int controlVal = 0;
+int checkForCommand(int currentControlVal) {
+  int newControlVal = currentControlVal;
 
   if (Serial.available()) {
     String inputString = Serial.readString();
@@ -120,12 +148,12 @@ int checkForCommand() {
     Serial.print(inputString + " - ");
 #endif
     if (inputString.equals("0")) {
-      controlVal = 0;
+      newControlVal = 0;
 #ifdef DEBUG
       Serial.println("close");
 #endif
     } else if (inputString.equals("1")) {
-      controlVal = 1;
+      newControlVal = 1;
 #ifdef DEBUG
       Serial.println("open");
 #endif
@@ -135,5 +163,30 @@ int checkForCommand() {
 #endif
     }
   }
-  return controlVal;
+
+  return newControlVal;
+}
+
+
+int checkForManualOverride(int currentControlVal) {
+  static int lastTriggerState;
+  static int triggeredTimeStamp;
+  const int debounceTime = 100;
+  int newControlVal = currentControlVal;
+
+  if (millis() - triggeredTimeStamp > debounceTime) {
+    int isHit = isTriggerHit(overrideButton);
+    if (isHit != lastTriggerState) {
+      if (isHit == true) {
+#ifdef DEBUG
+        Serial.println("override triggered - change state");
+#endif
+        newControlVal = !currentControlVal;
+        triggeredTimeStamp = millis();
+      }
+    }
+    lastTriggerState = isHit;
+  }
+
+  return newControlVal;
 }

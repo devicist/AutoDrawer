@@ -4,29 +4,50 @@ void initStepperPins() {
   pinMode(stepVoltagePin1, OUTPUT);
   digitalWrite(stepVoltagePin1, HIGH);
   pinMode(directionVoltagePin1, OUTPUT);
-  digitalWrite(directionVoltagePin1, HIGH);  
+  digitalWrite(directionVoltagePin1, HIGH);
 }
 
 
 void setupSteppers() {
-  stepper1.setPinsInverted(false, false, true);
-  stepper1.setMaxSpeed(maxVel);
-  stepper1.setAcceleration(defaultAccel);
-  stepper1.setEnablePin(enablePin1);
+  stepper.setPinsInverted(false, false, true);
+  stepper.setMaxSpeed(maxVel);
+  stepper.setAcceleration(defaultAccel);
+  stepper.setEnablePin(enablePin1);
+}
+
+
+int isMoving() {
+  static long lastPosition;
+  long position = stepper.currentPosition();
+  int isStepperMoving = true;
+
+#ifdef DEBUG
+  Serial.print(position);
+  Serial.print(" : ");
+  Serial.print(lastPosition);
+  Serial.print(", ");
+#endif
+
+  if (position == lastPosition) {
+    isStepperMoving = false;
+  }
+
+  lastPosition = position;
+  return isStepperMoving;
 }
 
 
 // step the steppers
 void run(int stepSpeed, int accel) {
-  stepper1.run();
+  stepper.run();
 }
 
 
 void enableSteppers() {
-  stepper1.enableOutputs();
+  stepper.enableOutputs();
 }
 
 
 void disableSteppers() {
-  stepper1.disableOutputs();
+  stepper.disableOutputs();
 }

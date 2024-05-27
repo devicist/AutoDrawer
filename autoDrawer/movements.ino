@@ -3,8 +3,19 @@ void moveTo(int dest) {
   if (dest <= 0) dest = 0;
   if (dest > 100) dest = 100;
   long destInSteps = (long)(maxDistanceInSteps * (dest / 100.0));
-  if (destInSteps > maxDistanceInSteps) destInSteps = maxDistanceInSteps;
-  stepper1.moveTo(destInSteps);
+  if (destInSteps > maxDistanceInSteps) destInSteps = maxDistanceInSteps; 
+  stepper.setAcceleration(defaultAccel);
+  stepper.setSpeed(defaultVel);
+  stepper.moveTo(destInSteps);
+}
+
+
+void quickStop() {
+  stepper.setAcceleration(10000);
+  stepper.setSpeed(0);
+  stepper.stop();  
+  stepper.runSpeedToPosition();
+  stepper.moveTo(stepper.currentPosition());
 }
 
 
@@ -15,7 +26,7 @@ void calibrate() {
 #endif
 
   retractToHome();
-  stepper1.setCurrentPosition(0);
+  stepper.setCurrentPosition(0);
 
 #ifdef DEBUG_CALIBRATE
   Serial.println(F("Retracted, Set Position: 0"));
@@ -29,62 +40,62 @@ void calibrate() {
 }
 
 
-// retract until endStop is hit
+// retract until home endStop is hit
 void retractToHome() {
-  stepper1.setSpeed(-calibrationVel);
+  stepper.setSpeed(-calibrationVel);
 
-  while (!isEndStopHit(homeES)) {
+  while (!isTriggerHit(homeES)) {
     while (isEmergencyEndStopHit())
       ;
-    stepper1.runSpeed();
+    stepper.runSpeed();
   }
 }
 
 
-// back off endStop after it is hit.
+// back off home endStop after it is hit.
 void backOffHome() {
-  stepper1.setSpeed(calibrationVel);
+  stepper.setSpeed(calibrationVel);
 
-  while (isEndStopHit(homeES)) {
+  while (isTriggerHit(homeES)) {
     while (isEmergencyEndStopHit())
       ;
-    stepper1.runSpeed();
+    stepper.runSpeed();
   }
 }
 
 
 // move to and report position at full extension
 void moveToAndReportFullExtension() {
-  extendToEndStops();
+  extendToEndStop();
 
 #ifdef DEBUG_CALIBRATE
   Serial.println(F("Extended, Back Off..."));
 #endif
 
-  backOffExtendedEndStops();
+  backOffExtendedEndStop();
 
 #ifdef DEBUG_CALIBRATE
   Serial.println(F("Extended Position: "));
-  Serial.println(stepper1.currentPosition());
+  Serial.println(stepper.currentPosition());
 #endif
 }
 
 
 // extend until endStop is hit
-void extendToEndStops() {
-  stepper1.setSpeed(calibrationVel);
+void extendToEndStop() {
+  stepper.setSpeed(calibrationVel);
 
-  while (!isEndStopHit(extendedES)) {
-    if (!isEndStopHit(extendedES)) stepper1.runSpeed();
+  while (!isTriggerHit(extendedES)) {
+    if (!isTriggerHit(extendedES)) stepper.runSpeed();
   }
 }
 
 
 // back off endStop after it is hit.
-void backOffExtendedEndStops() {
-  stepper1.setSpeed(-calibrationVel);
+void backOffExtendedEndStop() {
+  stepper.setSpeed(-calibrationVel);
 
-  while (isEndStopHit(extendedES)) {
-    if (isEndStopHit(extendedES)) stepper1.runSpeed();
+  while (isTriggerHit(extendedES)) {
+    if (isTriggerHit(extendedES)) stepper.runSpeed();
   }
 }
