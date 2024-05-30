@@ -16,6 +16,21 @@ void setupSteppers() {
 }
 
 
+// report state of motor: moving, open, or closed
+int checkDrawerState() {
+  int drawerState = 2;
+  int pos = stepper.currentPosition();
+  if(pos == maxDistanceInSteps){
+    drawerState = 1;
+  }
+  else if(pos == 0) {
+    drawerState = 0;
+  }
+  return drawerState;
+}
+
+
+// NOT USED - report if motor is moving or not.
 int isMoving() {
   static long lastPosition;
   long position = stepper.currentPosition();

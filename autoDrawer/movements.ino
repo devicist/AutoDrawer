@@ -9,7 +9,7 @@ void moveTo(int dest) {
   stepper.moveTo(destInSteps);
 }
 
-
+// stop the stepper as fast as possible
 void quickStop() {
   stepper.setAcceleration(10000);
   stepper.setSpeed(0);

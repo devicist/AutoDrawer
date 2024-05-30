@@ -12,6 +12,12 @@
  * Send values as ASCII characters. 
  * CR and NL are ignored.
  * Errant values are ignored.
+ *
+ * The Arduino reports its current state:
+ * 0 when fully closed
+ * 1 when fully open
+ * 2 when moving
+ * The state it reported once, and is true until next reported state
  * 
  * Tested on an Arduino Uno.
  *
@@ -105,6 +111,7 @@ void loop() {
   int accel = defaultAccel;
   static int drawerControlVal;
   static int lastControlVal;
+  static int lastDrawerState;
 
   drawerControlVal = checkForCommand(drawerControlVal);
   drawerControlVal = checkForManualOverride(drawerControlVal);
@@ -135,6 +142,16 @@ void loop() {
   if (isEmergencyEndStopHit() == false) {
     run(speed, accel);
   }
+
+  // print the current state of the drawer
+  int drawerState = checkDrawerState();
+  if (drawerState != lastDrawerState) {
+#ifdef DEBUG
+      Serial.print("current state: ");
+#endif    
+    Serial.println(drawerState);
+    lastDrawerState = drawerState;
+  }
 }
 
 
@@ -145,6 +162,7 @@ int checkForCommand(int currentControlVal) {
     String inputString = Serial.readString();
     inputString.trim();
 #ifdef DEBUG
+    Serial.print("received: ");
     Serial.print(inputString + " - ");
 #endif
     if (inputString.equals("0")) {
